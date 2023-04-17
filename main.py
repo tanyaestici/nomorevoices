@@ -1,7 +1,7 @@
+import os
 import httpx
 from time import sleep
 
-import os
 
 API_URL = "https://api.telegram.org"
 API_TOKEN = os.environ.get("API_TOKEN", None)
@@ -10,8 +10,15 @@ API_URL_FULL = f"{API_URL}/bot{API_TOKEN}"
 
 def handle_message(message):
     chat_id = message["chat"]["id"]
+    reply_to_id = message["message_id"]
+
     httpx.post(
-        f"{API_URL_FULL}/sendMessage", data={"chat_id": chat_id, "text": "fuck you"}
+        f"{API_URL_FULL}/sendMessage",
+        data={
+            "chat_id": chat_id,
+            "text": "fuck you",
+            "reply_to_message_id": reply_to_id,
+        },
     )
 
 
@@ -26,7 +33,6 @@ def request(last_update_id):
         params={"allowed_updates": ["message"], "offset": offset},
     )
 
-    # Deserialization. Transforms the text from response's body into a list of dictionaries
     response = r.json()
     updates = response["result"]
 
