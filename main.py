@@ -1,11 +1,20 @@
 import os
 import httpx
 from time import sleep
-
+from random import choice
 
 API_URL = "https://api.telegram.org"
 API_TOKEN = os.environ.get("API_TOKEN", None)
 API_URL_FULL = f"{API_URL}/bot{API_TOKEN}"
+
+REPLIES = [
+    "Please, abstain from sending voices",
+    "We don't like voice messages here",
+    "Unfortunately, nobody will listen to it",
+    "Keep your voices to yourself",
+    "Text is always better",
+    "Show some respect and write it down",
+]
 
 
 def handle_message(message):
@@ -16,7 +25,7 @@ def handle_message(message):
         f"{API_URL_FULL}/sendMessage",
         data={
             "chat_id": chat_id,
-            "text": "fuck you",
+            "text": choice(REPLIES),
             "reply_to_message_id": reply_to_id,
         },
     )
@@ -38,9 +47,9 @@ def request(last_update_id):
 
     for update in updates:
         last_update_id = update["update_id"]
-        message = update["message"]
+        message = update.get("message", None)
 
-        if "voice" in message:
+        if message and "voice" in message:
             handle_message(message)
 
     return last_update_id
