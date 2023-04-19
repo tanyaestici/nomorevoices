@@ -1,8 +1,9 @@
 import os
-import httpx
-from time import sleep
+from collections import Counter
 from random import choice
+from time import sleep
 
+import httpx
 
 REPLIES = [
     "Please, abstain from sending voices",
@@ -12,6 +13,8 @@ REPLIES = [
     "Text is always better",
     "Show some respect and write it down",
 ]
+
+counter = Counter()
 
 
 class TelegramClient:
@@ -33,12 +36,12 @@ class TelegramClient:
             return []
         return response["result"]
 
-    def send_messages(self, chat_id, text, reply_to_message_id=None):
+    def send_message(self, chat_id, text, reply_to_message_id=None):
         httpx.post(
             f"{self.api_url_full}/sendMessage",
             data={
                 "chat_id": chat_id,
-                "text": choice(REPLIES),
+                "text": text,
                 "reply_to_message_id": reply_to_message_id,
             },
         )
@@ -55,12 +58,24 @@ def request(client, last_update_id):
     for message in messages:
         last_update_id = message["update_id"]
         message = message.get("message", None)
+        chat_id = message["chat"]["id"]
 
         if message and "voice" in message:
-            chat_id = message["chat"]["id"]
             reply_to_message_id = message["message_id"]
 
-            client.send_messages(chat_id, choice(REPLIES), reply_to_message_id)
+            client.send_message(chat_id, choice(REPLIES), reply_to_message_id)
+            counter[chat_id] += 1
+        elif "entities" in message:
+            for entity in message["entities"]:
+                if entity["type"] == "bot_command":
+                    cmd_offset = entity["offset"]
+                    cmd_length = entity["length"]
+                    cmd = message["text"][cmd_offset + 1 : cmd_length + cmd_offset]
+
+                    if cmd == "total":
+                        client.send_message(
+                            chat_id, f"Total voices: {counter[chat_id]}"
+                        )
 
     return last_update_id
 
