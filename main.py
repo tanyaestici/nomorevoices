@@ -58,6 +58,10 @@ def request(client, last_update_id):
     for message in messages:
         last_update_id = message["update_id"]
         message = message.get("message", None)
+
+        if not message:
+            continue
+
         chat_id = message["chat"]["id"]
 
         if message and "voice" in message:
