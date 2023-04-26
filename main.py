@@ -76,7 +76,7 @@ def request(client, last_update_id):
                     cmd_length = entity["length"]
                     cmd = message["text"][cmd_offset + 1 : cmd_length + cmd_offset]
 
-                    if cmd == "total":
+                    if "total" in cmd:
                         client.send_message(
                             chat_id, f"Total voices: {counter[chat_id]}"
                         )
